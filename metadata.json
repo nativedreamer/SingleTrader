@@ -1,0 +1,6 @@
+{
+  "name": "SingleTrader BTC/USD",
+  "description": "High-precision BTC/USD Quantitative Signal Generator & Pine Script 2:1 Analytics PWA",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
