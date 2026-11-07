@@ -10,7 +10,6 @@ interface HeroSignalCardProps {
 export const HeroSignalCard: React.FC<HeroSignalCardProps> = ({ signal, currentPrice }) => {
   const isBuy = signal.action === 'BUY';
   const isSell = signal.action === 'SELL';
-  const isHold = signal.action === 'HOLD';
 
   const riskDistance = Math.abs(signal.price - signal.sl);
   const rewardDistanceTP1 = Math.abs(signal.tp1 - signal.price);
@@ -19,7 +18,6 @@ export const HeroSignalCard: React.FC<HeroSignalCardProps> = ({ signal, currentP
   const priceDiff = currentPrice - signal.price;
   const pnlPct = signal.price > 0 ? ((isBuy ? priceDiff : -priceDiff) / signal.price) * 100 : 0;
 
-  // Calculation of progress bar from SL to TP2
   let progressPct = 50;
   if (isBuy && signal.tp2 > signal.sl) {
     progressPct = Math.min(100, Math.max(0, ((currentPrice - signal.sl) / (signal.tp2 - signal.sl)) * 100));
@@ -33,205 +31,147 @@ export const HeroSignalCard: React.FC<HeroSignalCardProps> = ({ signal, currentP
       : '—';
 
   return (
-    <div className="bg-[#0c1220] border border-[#1e293b] rounded-xl p-5 sm:p-6 transition-all">
-      {/* Top Banner: Signal Action & Confidence */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#1e293b]">
+    <div className="group-card p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-3">
           <div
-            className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${
+            className={`w-12 h-12 rounded-[14px] flex items-center justify-center border ${
               isBuy
-                ? 'bg-[#00d09c]/15 text-[#00d09c] border border-[#00d09c]/30'
+                ? 'bg-[var(--positive)]/15 text-[var(--positive)] border-[var(--positive)]/25'
                 : isSell
-                ? 'bg-[#ef4444]/15 text-[#ef4444] border border-[#ef4444]/30'
-                : 'bg-slate-800 text-slate-300 border border-slate-700'
+                  ? 'bg-[var(--negative)]/15 text-[var(--negative)] border-[var(--negative)]/25'
+                  : 'bg-[var(--surface-2)] text-[var(--secondary)] border-[var(--border)]'
             }`}
           >
             {isBuy ? (
-              <ArrowUpRight className="w-6 h-6 stroke-[2.5]" />
+              <ArrowUpRight className="w-6 h-6" strokeWidth={2.25} />
             ) : isSell ? (
-              <ArrowDownRight className="w-6 h-6 stroke-[2.5]" />
+              <ArrowDownRight className="w-6 h-6" strokeWidth={2.25} />
             ) : (
-              <Zap className="w-6 h-6 stroke-[2.5]" />
+              <Zap className="w-6 h-6" strokeWidth={2.25} />
             )}
           </div>
-
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight text-white font-mono">
-                {signal.symbol}
-              </span>
-              <span className="text-slate-500">·</span>
+              <span className="text-[20px] font-semibold tracking-tight font-mono tabular-nums">{signal.symbol}</span>
               <span
-                className={`text-sm font-semibold tracking-wide ${
-                  isBuy ? 'text-[#00d09c]' : isSell ? 'text-[#ef4444]' : 'text-slate-400'
+                className={`text-[13px] font-semibold ${
+                  isBuy ? 'text-[var(--positive)]' : isSell ? 'text-[var(--negative)]' : 'text-[var(--secondary)]'
                 }`}
               >
-                {signal.strength ? signal.strength.replace('_', ' ') : signal.action}
+                {signal.strength ? signal.strength.replace(/_/g, ' ') : signal.action}
               </span>
             </div>
-
-            <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-              <span>Confirmed on 2:1 Pine Engine</span>
-              <span>·</span>
-              <span className="font-mono">
-                {new Date(signal.timestamp).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                })}
-              </span>
+            <div className="text-[12px] text-[var(--tertiary)] mt-0.5 font-mono tabular-nums">
+              {new Date(signal.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
             </div>
           </div>
         </div>
 
-        {/* Confidence Gauge */}
-        <div className="flex items-center gap-4 bg-[#111827] px-4 py-2.5 rounded-lg border border-[#1e293b]/70 shrink-0">
+        <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-[12px] bg-[var(--bg)] border border-[var(--border-subtle)]">
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">
-              Confluence Score
-            </div>
-            <div className="text-lg font-bold text-white font-mono flex items-center gap-1.5">
-              <span>{signal.confidence}%</span>
-              <span className="text-xs font-normal text-slate-400">algorithm</span>
-            </div>
+            <div className="text-[10px] uppercase tracking-wide text-[var(--tertiary)] font-medium">Confluence</div>
+            <div className="text-[17px] font-semibold font-mono tabular-nums">{signal.confidence}%</div>
           </div>
-
-          <div className="w-10 h-10 rounded-full border-2 border-slate-700 flex items-center justify-center relative">
-            <svg className="w-10 h-10 transform -rotate-90">
+          <div className="w-10 h-10 relative">
+            <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="16" stroke="var(--border)" strokeWidth="2.5" fill="none" />
               <circle
                 cx="20"
                 cy="20"
                 r="16"
-                stroke="currentColor"
+                stroke={isBuy ? 'var(--positive)' : isSell ? 'var(--negative)' : 'var(--accent)'}
                 strokeWidth="2.5"
-                fill="transparent"
-                className="text-slate-800"
-              />
-              <circle
-                cx="20"
-                cy="20"
-                r="16"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                fill="transparent"
+                fill="none"
                 strokeDasharray={100}
                 strokeDashoffset={100 - signal.confidence}
                 strokeLinecap="round"
-                className={isBuy ? 'text-[#00d09c]' : isSell ? 'text-[#ef4444]' : 'text-blue-500'}
               />
             </svg>
           </div>
         </div>
       </div>
 
-      {/* Main Trade Parameters Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-5 border-b border-[#1e293b]">
-        {/* Entry Price */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-b border-[var(--border-subtle)]">
         <div>
-          <div className="text-xs text-slate-400 mb-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            Entry Price
-          </div>
-          <div className="text-lg sm:text-xl font-bold font-mono text-white">
-            {formatPrice(signal.price)}
-          </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-            Spot: {formatPrice(currentPrice)}
-          </div>
+          <div className="text-[11px] text-[var(--tertiary)] mb-1">Entry</div>
+          <div className="text-[17px] font-semibold font-mono tabular-nums">{formatPrice(signal.price)}</div>
+          <div className="text-[11px] text-[var(--tertiary)] font-mono mt-0.5">Spot {formatPrice(currentPrice)}</div>
         </div>
-
-        {/* Stop Loss */}
         <div>
-          <div className="text-xs text-slate-400 mb-1 flex items-center gap-1.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-[#ef4444]" />
-            Dynamic Stop Loss
+          <div className="text-[11px] text-[var(--tertiary)] mb-1 inline-flex items-center gap-1">
+            <ShieldAlert className="w-3 h-3 text-[var(--negative)]" /> Stop
           </div>
-          <div className="text-lg sm:text-xl font-bold font-mono text-[#ef4444]">
+          <div className="text-[17px] font-semibold font-mono tabular-nums text-[var(--negative)]">
             {formatPrice(signal.sl)}
           </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-            Risk: {riskDistance > 0 ? `-$${riskDistance.toFixed(1)}` : '—'}
+          <div className="text-[11px] text-[var(--tertiary)] font-mono mt-0.5">
+            {riskDistance > 0 ? `−$${riskDistance.toFixed(0)}` : '—'}
           </div>
         </div>
-
-        {/* Take Profit 1 (1:1 RRR) */}
         <div>
-          <div className="text-xs text-slate-400 mb-1 flex items-center gap-1.5">
-            <Target className="w-3.5 h-3.5 text-[#00d09c]" />
-            Target 1 (1:1 RRR)
+          <div className="text-[11px] text-[var(--tertiary)] mb-1 inline-flex items-center gap-1">
+            <Target className="w-3 h-3 text-[var(--positive)]" /> TP1
           </div>
-          <div className="text-lg sm:text-xl font-bold font-mono text-[#00d09c]">
+          <div className="text-[17px] font-semibold font-mono tabular-nums text-[var(--positive)]">
             {formatPrice(signal.tp1)}
           </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-            Gain: {rewardDistanceTP1 > 0 ? `+$${rewardDistanceTP1.toFixed(1)}` : '—'}
+          <div className="text-[11px] text-[var(--tertiary)] font-mono mt-0.5">
+            {rewardDistanceTP1 > 0 ? `+$${rewardDistanceTP1.toFixed(0)}` : '—'}
           </div>
         </div>
-
-        {/* Take Profit 2 (2:1 RRR - Core) */}
         <div>
-          <div className="text-xs text-slate-400 mb-1 flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#00d09c]" />
-            Target 2 (2:1 Core)
+          <div className="text-[11px] text-[var(--tertiary)] mb-1 inline-flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 text-[var(--positive)]" /> TP2
           </div>
-          <div className="text-lg sm:text-xl font-bold font-mono text-[#00d09c]">
+          <div className="text-[17px] font-semibold font-mono tabular-nums text-[var(--positive)]">
             {formatPrice(signal.tp2)}
           </div>
-          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-            Gain: {rewardDistanceTP2 > 0 ? `+$${rewardDistanceTP2.toFixed(1)}` : '—'}
+          <div className="text-[11px] text-[var(--tertiary)] font-mono mt-0.5">
+            {rewardDistanceTP2 > 0 ? `+$${rewardDistanceTP2.toFixed(0)}` : '—'}
           </div>
         </div>
       </div>
 
-      {/* Real-time Target Trajectory Meter */}
       <div className="pt-4">
-        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-          <span>Target Trajectory (SL ➜ TP2)</span>
-          <span className="font-mono">
-            Unrealized PnL:{' '}
-            <strong className={pnlPct >= 0 ? 'text-[#00d09c]' : 'text-[#ef4444]'}>
+        <div className="flex items-center justify-between text-[11px] text-[var(--tertiary)] mb-2">
+          <span>Trajectory SL → TP2</span>
+          <span className="font-mono tabular-nums">
+            PnL{' '}
+            <strong className={pnlPct >= 0 ? 'text-[var(--positive)]' : 'text-[var(--negative)]'}>
               {pnlPct >= 0 ? '+' : ''}
               {pnlPct.toFixed(2)}%
             </strong>
           </span>
         </div>
-
-        <div className="w-full bg-[#111827] h-2.5 rounded-full overflow-hidden relative border border-[#1e293b]">
+        <div className="w-full h-2 rounded-full overflow-hidden bg-[var(--bg)] border border-[var(--border-subtle)]">
           <div
-            className={`h-full transition-all duration-500 ${
-              isBuy ? 'bg-[#00d09c]' : isSell ? 'bg-[#ef4444]' : 'bg-blue-500'
+            className={`h-full transition-all duration-300 ${
+              isBuy ? 'bg-[var(--positive)]' : isSell ? 'bg-[var(--negative)]' : 'bg-[var(--accent)]'
             }`}
             style={{ width: `${progressPct}%` }}
           />
         </div>
-
-        {/* Indicator Confluence Telemetry */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3.5 text-xs text-slate-400 font-mono">
-          <div>
-            RSI(14): <span className="text-white font-medium">{signal.indicators?.rsi || '—'}</span>
-          </div>
-          <span>·</span>
-          <div>
-            Supertrend:{' '}
-            <span
-              className={
-                signal.indicators?.supertrendDirection === 1 ? 'text-[#00d09c]' : 'text-[#ef4444]'
-              }
-            >
-              {signal.indicators?.supertrendDirection === 1 ? 'Bullish' : 'Bearish'}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-[11px] text-[var(--tertiary)] font-mono tabular-nums">
+          <span>
+            RSI <span className="text-[var(--label)]">{signal.indicators?.rsi ?? '—'}</span>
+          </span>
+          <span>
+            Supertrend{' '}
+            <span className={signal.indicators?.supertrendDirection === 1 ? 'text-[var(--positive)]' : 'text-[var(--negative)]'}>
+              {signal.indicators?.supertrendDirection === 1 ? 'Bull' : 'Bear'}
             </span>
-          </div>
-          <span>·</span>
-          <div>
-            200 EMA Baseline:{' '}
-            <span className="text-white font-medium">
+          </span>
+          <span>
+            EMA200{' '}
+            <span className="text-[var(--label)]">
               {signal.indicators?.ema200 ? `$${signal.indicators.ema200}` : '—'}
             </span>
-          </div>
-          <span>·</span>
-          <div>
-            Source: <span className="text-slate-300">{signal.source}</span>
-          </div>
+          </span>
         </div>
       </div>
     </div>

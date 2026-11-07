@@ -26,37 +26,26 @@ export const TradingChart: React.FC<TradingChartProps> = ({
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#090d16' },
-        textColor: '#94a3b8',
+        background: { type: ColorType.Solid, color: '#1c1917' },
+        textColor: '#a8a29e',
         fontSize: 11,
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
       },
       grid: {
-        vertLines: { color: '#131c2e' },
-        horzLines: { color: '#131c2e' },
+        vertLines: { color: '#2a2623' },
+        horzLines: { color: '#2a2623' },
       },
       crosshair: {
         mode: 1,
-        vertLine: {
-          color: '#334155',
-          width: 1,
-          style: LineStyle.Dashed,
-        },
-        horzLine: {
-          color: '#334155',
-          width: 1,
-          style: LineStyle.Dashed,
-        },
+        vertLine: { color: '#57534e', width: 1, style: LineStyle.Dashed },
+        horzLine: { color: '#57534e', width: 1, style: LineStyle.Dashed },
       },
       rightPriceScale: {
-        borderColor: '#1e293b',
-        scaleMargins: {
-          top: 0.1,
-          bottom: 0.15,
-        },
+        borderColor: '#44403c',
+        scaleMargins: { top: 0.1, bottom: 0.12 },
       },
       timeScale: {
-        borderColor: '#1e293b',
+        borderColor: '#44403c',
         timeVisible: true,
         secondsVisible: false,
       },
@@ -65,11 +54,11 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     });
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#00d09c',
-      downColor: '#ef4444',
+      upColor: '#6b9b7a',
+      downColor: '#c45c5c',
       borderVisible: false,
-      wickUpColor: '#00d09c',
-      wickDownColor: '#ef4444',
+      wickUpColor: '#6b9b7a',
+      wickDownColor: '#c45c5c',
     });
 
     chartRef.current = chart;
@@ -83,7 +72,6 @@ export const TradingChart: React.FC<TradingChartProps> = ({
         });
       }
     };
-
     window.addEventListener('resize', handleResize);
     handleResize();
 
@@ -95,14 +83,13 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     };
   }, []);
 
-  // Update candle data and price lines
   useEffect(() => {
-    if (!candleSeriesRef.current || !candles || candles.length === 0) return;
+    if (!candleSeriesRef.current || !candles?.length) return;
 
-    // Filter duplicates and sort chronologically
-    const sortedCandles = [...candles]
-      .filter((c, i, arr) => i === 0 || c.time > arr[i - 1].time)
-      .map(c => ({
+    const sorted = [...candles]
+      .filter((c, i, arr) => i === 0 || c.time !== arr[i - 1].time)
+      .sort((a, b) => a.time - b.time)
+      .map((c) => ({
         time: c.time as any,
         open: c.open,
         high: c.high,
@@ -110,41 +97,40 @@ export const TradingChart: React.FC<TradingChartProps> = ({
         close: c.close,
       }));
 
-    candleSeriesRef.current.setData(sortedCandles);
+    candleSeriesRef.current.setData(sorted);
 
-    // If active signal exists, draw Target and Stop Loss price lines
-    if (activeSignal && activeSignal.price > 0 && chartRef.current) {
+    if (activeSignal && activeSignal.price > 0) {
       try {
         if (activeSignal.tp2 > 0) {
           candleSeriesRef.current.createPriceLine({
             price: activeSignal.tp2,
-            color: '#00d09c',
+            color: '#6b9b7a',
             lineWidth: 1,
             lineStyle: LineStyle.Dotted,
             axisLabelVisible: true,
-            title: 'TP2 (2:1)',
+            title: 'TP2',
           });
         }
         if (activeSignal.sl > 0) {
           candleSeriesRef.current.createPriceLine({
             price: activeSignal.sl,
-            color: '#ef4444',
+            color: '#c45c5c',
             lineWidth: 1,
             lineStyle: LineStyle.Solid,
             axisLabelVisible: true,
-            title: 'SL (ATR 2.2)',
+            title: 'SL',
           });
         }
         candleSeriesRef.current.createPriceLine({
           price: activeSignal.price,
-          color: '#f59e0b',
+          color: '#d4a574',
           lineWidth: 1,
           lineStyle: LineStyle.Dashed,
           axisLabelVisible: true,
           title: 'Entry',
         });
-      } catch (e) {
-        // Line may already exist
+      } catch {
+        /* */
       }
     }
   }, [candles, activeSignal]);
@@ -152,25 +138,22 @@ export const TradingChart: React.FC<TradingChartProps> = ({
   const timeframes: ('1m' | '5m' | '15m' | '1h' | '4h')[] = ['1m', '5m', '15m', '1h', '4h'];
 
   return (
-    <div className="flex flex-col bg-[#0c1220] border border-[#1e293b] rounded-lg overflow-hidden">
-      {/* Chart Toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-[#1e293b] text-xs">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-200">BTC/USD Live Chart</span>
-          <span className="text-slate-500">·</span>
-          <span className="text-slate-400 font-mono">{source}</span>
+    <div className="group-card overflow-hidden">
+      <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-[var(--border-subtle)]">
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold tracking-tight text-[var(--label)]">BTC/USD</div>
+          <div className="text-[10px] text-[var(--tertiary)] font-mono truncate">{source}</div>
         </div>
-
-        {/* Timeframe Segmented Control */}
-        <div className="flex items-center gap-1 bg-[#131c2e] p-0.5 rounded-md">
-          {timeframes.map(tf => (
+        <div className="flex items-center gap-0.5 p-0.5 rounded-[10px] bg-[var(--bg)] border border-[var(--border-subtle)]">
+          {timeframes.map((tf) => (
             <button
               key={tf}
+              type="button"
               onClick={() => onTimeframeChange(tf)}
-              className={`px-2 py-1 rounded text-xs font-mono transition-colors ${
+              className={`pressable h-8 min-w-[36px] px-2 rounded-[8px] text-[11px] font-mono tabular-nums ${
                 timeframe === tf
-                  ? 'bg-[#1e293b] text-white font-medium'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[var(--surface-2)] text-[var(--label)] font-semibold'
+                  : 'text-[var(--tertiary)]'
               }`}
             >
               {tf.toUpperCase()}
@@ -179,13 +162,12 @@ export const TradingChart: React.FC<TradingChartProps> = ({
         </div>
       </div>
 
-      {/* Chart Canvas Container */}
-      <div className="w-full h-[320px] sm:h-[380px] relative" ref={chartContainerRef}>
+      <div className="w-full h-[300px] sm:h-[360px] relative" ref={chartContainerRef}>
         {(!candles || candles.length === 0) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#090d16]/80 z-10">
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              Loading real-time candlestick telemetry...
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--surface)]/90 z-10">
+            <div className="text-xs text-[var(--secondary)] flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+              Loading chart…
             </div>
           </div>
         )}
